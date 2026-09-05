@@ -1,0 +1,118 @@
+# Passenger configuration untuk Django
+PassengerEnabled On
+PassengerAppRoot /home/expedien/public_html/rdsmahato.ponpes.id
+PassengerBaseURI /
+PassengerPython /home/expedien/virtualenv/public_html/rdsmahato.ponpes.id/3.10/bin/python
+PassengerAppType wsgi
+PassengerStartupFile passenger_wsgi.py
+
+# Set Environment untuk Production
+SetEnv ENVIRONMENT production
+
+# Force reload aplikasi (hapus komentar ini jika perlu restart aplikasi)
+# touch passenger_wsgi.py
+
+# Redirect HTTP ke HTTPS - Memaksa semua traffic menggunakan HTTPS
+# Ini mencegah pengunjung "jalan-jalan" di jalur tidak aman (HTTP)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    # Cek jika request bukan HTTPS
+    RewriteCond %{HTTPS} off
+    # Redirect ke HTTPS dengan domain yang sama
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+    # Alternatif jika ingin redirect ke www atau non-www:
+    # RewriteRule ^(.*)$ https://www.%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+# Security Headers
+<IfModule mod_headers.c>
+    # XSS Protection
+    Header set X-XSS-Protection "1; mode=block"
+    # Content Type Options
+    Header set X-Content-Type-Options "nosniff"
+    # Frame Options - SAMEORIGIN untuk support Summernote iframe
+    Header set X-Frame-Options "SAMEORIGIN"
+    # Referrer Policy
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    
+    # HTTP Strict Transport Security (HSTS) - Memaksa browser menggunakan HTTPS
+    # HSTS mencegah browser mengakses website via HTTP selama periode tertentu
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    
+    # Content Security Policy (CSP) Header - Backup dari Django CSP
+    # Jika Django CSP tidak bekerja, header ini akan memastikan CSP terkirim
+    # Catatan: Django CSP middleware seharusnya sudah menambahkan header ini
+    # Header ini sebagai backup/fallback - AKTIFKAN jika CSP dari Django tidak muncul
+    Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://code.jquery.com https://cdnjs.cloudflare.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; upgrade-insecure-requests;"
+    
+    # Permissions-Policy (sebelumnya Feature-Policy)
+    # Mengontrol fitur browser yang dapat digunakan website untuk meningkatkan keamanan
+    # Menonaktifkan fitur yang tidak diperlukan untuk mencegah abuse
+    # Fitur 'speaker' dan 'vibrate' dihapus karena tidak dikenali oleh browser modern
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), fullscreen=(self), sync-xhr=()"
+    
+    # Menyembunyikan Identitas Server (Server Software Exposed)
+    # Menyembunyikan Server header yang menampilkan versi Apache
+    Header unset Server
+    Header always unset Server
+    # Menyembunyikan X-Powered-By header (jika ada dari PHP/Passenger)
+    Header unset X-Powered-By
+    Header always unset X-Powered-By
+    # Menyembunyikan X-AspNet-Version (jika ada)
+    Header unset X-AspNet-Version
+    Header always unset X-AspNet-Version
+    # Menyembunyikan X-AspNetMvc-Version (jika ada)
+    Header unset X-AspNetMvc-Version
+    Header always unset X-AspNetMvc-Version
+    # Menyembunyikan informasi teknologi lainnya
+    Header unset X-Runtime
+    Header always unset X-Runtime
+    Header unset X-Version
+    Header always unset X-Version
+    # Menyembunyikan informasi Passenger (jika ada)
+    Header unset X-Passenger-Version
+    Header always unset X-Passenger-Version
+    # Alternatif: Set Server header ke nilai generic (jika unset tidak bekerja)
+    # Header set Server "WebServer"
+    # Header always set Server "WebServer"
+</IfModule>
+
+# Static Files - Serve langsung dari Apache (lebih cepat)
+<IfModule mod_alias.c>
+    Alias /static /home/expedien/public_html/rdsmahato.ponpes.id/staticfiles
+    <Directory /home/expedien/public_html/rdsmahato.ponpes.id/staticfiles>
+        Require all granted
+        # Cache static files untuk 30 hari
+        <IfModule mod_expires.c>
+            ExpiresActive On
+            ExpiresDefault "access plus 30 days"
+        </IfModule>
+    </Directory>
+    
+    Alias /media /home/expedien/public_html/rdsmahato.ponpes.id/media
+    <Directory /home/expedien/public_html/rdsmahato.ponpes.id/media>
+        Require all granted
+        # Cache media files untuk 7 hari
+        <IfModule mod_expires.c>
+            ExpiresActive On
+            ExpiresDefault "access plus 7 days"
+        </IfModule>
+    </Directory>
+</IfModule>
+
+# Gzip Compression
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
+</IfModule>
+
+# Prevent access to sensitive files
+<FilesMatch "^(\.env|\.git|\.htaccess|db\.sqlite3|passenger_wsgi\.py|manage\.py|requirements\.txt|PRODUCTION_SETUP\.md)$">
+    Require all denied
+</FilesMatch>
+
+# php -- BEGIN cPanel-generated handler, do not edit
+# Set the “ea-php81” package as the default “PHP” programming language.
+<IfModule mime_module>
+  AddHandler application/x-httpd-ea-php81 .php .php8 .phtml
+</IfModule>
+# php -- END cPanel-generated handler, do not edit

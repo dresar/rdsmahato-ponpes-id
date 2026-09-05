@@ -1,0 +1,268 @@
+{% extends 'admin-panel/base.html' %}
+
+{% block title %}Ekstrakurikuler - Admin Panel{% endblock %}
+
+{% block page_title %}Ekstrakurikuler{% endblock %}
+
+{% block breadcrumb_items %}
+<li><span class="text-gray-500">/</span></li>
+<li><span class="text-gray-900">Ekstrakurikuler</span></li>
+{% endblock %}
+
+{% block content %}
+<div x-data="{
+    deleteModal: false, 
+    deleteId: null, 
+    deleteName: '', 
+    formModal: false,
+    imageFormModal: false,
+    currentEkstraId: null,
+    imageModal: false,
+    currentImageIndex: 0,
+    currentEkstraImages: [],
+    previewImageUrl: ''
+}">
+    <div class="bg-white rounded-lg shadow mb-6 p-6">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <h2 class="text-2xl font-bold text-gray-900">Ekstrakurikuler</h2>
+            <button @click="formModal = true" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center">
+                <i class="fas fa-plus mr-2"></i>Tambah
+            </button>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-lg shadow p-6">
+        <form method="get" class="mb-6">
+            <input type="text" name="search" value="{{ search }}" placeholder="Cari ekstrakurikuler..." 
+                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+        </form>
+        
+        {% if ekstra %}
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {% for e in ekstra %}
+            <div class="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden group">
+                <div class="p-4">
+                    <div class="flex items-center justify-center mb-3">
+                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                            <i class="{{ e.icon }} text-2xl text-green-600"></i>
+                        </div>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 text-sm mb-2 text-center line-clamp-2">{{ e.nama }}</h3>
+                    <div class="flex items-center justify-center mb-3">
+                        <span class="text-xs text-gray-500">Urutan: #{{ e.order }}</span>
+                        {% if e.gambar_ekstrakurikuler.all %}
+                        <span class="ml-2 text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
+                            <i class="fas fa-images mr-1"></i>{{ e.gambar_ekstrakurikuler.all|length }}/5
+                        </span>
+                        {% endif %}
+                    </div>
+                    <div class="flex items-center justify-center gap-2 pt-3 border-t border-gray-100">
+                        <button @click="formModal = true; window.location.href = '?edit={{ e.id }}'" class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
+                            <i class="fas fa-edit text-sm"></i>
+                        </button>
+                        <button @click="currentEkstraId = {{ e.id }}; imageFormModal = true" 
+                                class="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors" 
+                                title="Tambah Gambar"
+                                {% if e.gambar_ekstrakurikuler.all|length >= 5 %}disabled title="Maksimal 5 gambar"{% endif %}>
+                            <i class="fas fa-image text-sm"></i>
+                        </button>
+                        <button @click="deleteModal = true; deleteId = {{ e.id }}; deleteName = '{{ e.nama|escapejs }}'" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Hapus">
+                            <i class="fas fa-trash text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        {% if ekstra.has_other_pages %}
+        <div class="mt-6 flex justify-center items-center gap-2">
+            {% if ekstra.has_previous %}
+            <a href="?page={{ ekstra.previous_page_number }}{% if search %}&search={{ search }}{% endif %}" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+            {% endif %}
+            <span class="px-4 py-2 text-sm text-gray-700">Halaman {{ ekstra.number }} dari {{ ekstra.paginator.num_pages }}</span>
+            {% if ekstra.has_next %}
+            <a href="?page={{ ekstra.next_page_number }}{% if search %}&search={{ search }}{% endif %}" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors">
+                <i class="fas fa-chevron-right"></i>
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="text-center py-12 text-gray-500">
+            <i class="fas fa-inbox text-4xl mb-4 text-gray-300"></i>
+            <p>Tidak ada data</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Form Modal -->
+    <div x-show="formModal || {% if ekstra_obj %}true{% else %}false{% endif %}" x-cloak @click.away="formModal = false; window.location.href = '{% url 'core:ekstrakurikuler_list' %}'" class="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4" @click.stop>
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">{% if ekstra_obj %}Edit Ekstrakurikuler{% else %}Tambah Ekstrakurikuler{% endif %}</h3>
+                <button @click="formModal = false; window.location.href = '{% url 'core:ekstrakurikuler_list' %}'" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form method="post" action="{% if ekstra_obj %}{% url 'core:ekstrakurikuler_update' ekstra_obj.id %}{% else %}{% url 'core:ekstrakurikuler_create' %}{% endif %}">
+                {% csrf_token %}
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nama *</label>
+                        {{ form.nama }}
+                        {% if form.nama.errors %}<p class="mt-1 text-sm text-red-600">{{ form.nama.errors.0 }}</p>{% endif %}
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Icon (Font Awesome) *</label>
+                        {{ form.icon }}
+                        {% if form.icon.errors %}<p class="mt-1 text-sm text-red-600">{{ form.icon.errors.0 }}</p>{% endif %}
+                        <p class="mt-1 text-xs text-gray-500">Contoh: fas fa-campground, fas fa-microphone-alt</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Urutan</label>
+                        {{ form.order }}
+                        {% if form.order.errors %}<p class="mt-1 text-sm text-red-600">{{ form.order.errors.0 }}</p>{% endif %}
+                    </div>
+                    <div class="flex justify-end space-x-3 pt-4">
+                        <button type="button" @click="formModal = false; window.location.href = '{% url 'core:ekstrakurikuler_list' %}'" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors">Batal</button>
+                        <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">Simpan</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Image Upload Modal -->
+    <div x-show="imageFormModal" x-cloak 
+         @click.away="imageFormModal = false; previewImageUrl = ''" 
+         class="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" @click.stop>
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold">Tambah Gambar Ekstrakurikuler</h3>
+                <button @click="imageFormModal = false; previewImageUrl = ''" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <form method="post" enctype="multipart/form-data" x-bind:action="'/admin-panel/core/ekstrakurikuler/' + currentEkstraId + '/image/add/'">
+                {% csrf_token %}
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Gambar *</label>
+                        <input type="file" name="gambar" accept="image/*" required
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
+                               @change="previewImageUrl = URL.createObjectURL($event.target.files[0])">
+                    </div>
+                    <div x-show="previewImageUrl" class="mb-4">
+                        <img :src="previewImageUrl" alt="Preview" class="w-full h-48 object-cover rounded-lg border border-gray-200">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Alt Text (Deskripsi Gambar)</label>
+                        <input type="text" name="alt_text" placeholder="Deskripsi gambar untuk SEO"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    </div>
+                    <div class="flex justify-end space-x-3 pt-4">
+                        <button type="button" @click="imageFormModal = false; previewImageUrl = ''" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors">Batal</button>
+                        <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">Upload</button>
+                    </div>
+                </div>
+            </form>
+            
+            <!-- Existing Images -->
+            <div class="mt-6 pt-6 border-t border-gray-200" x-show="currentEkstraId">
+                <h4 class="text-sm font-semibold text-gray-700 mb-3">Gambar yang Sudah Ada</h4>
+                <div class="grid grid-cols-3 gap-3">
+                    {% for e in ekstra %}
+                    <div x-show="currentEkstraId == {{ e.id }}" x-cloak>
+                        {% if e.gambar_ekstrakurikuler.all %}
+                            {% for img in e.gambar_ekstrakurikuler.all %}
+                            <div class="relative group mb-3">
+                                <img src="{{ img.gambar.url }}" alt="{{ img.alt_text|default:e.nama }}" 
+                                     class="w-full h-24 object-cover rounded-lg border border-gray-200 cursor-pointer hover:opacity-80 transition-opacity"
+                                     @click="currentEkstraImages = [{% for img2 in e.gambar_ekstrakurikuler.all %}{'url': '{{ img2.gambar.url|escapejs }}', 'alt': '{{ img2.alt_text|default:e.nama|escapejs }}'}{% if not forloop.last %},{% endif %}{% endfor %}]; currentImageIndex = {{ forloop.counter0 }}; imageModal = true">
+                                <form method="post" action="{% url 'core:ekstrakurikuler_image_delete' img.id %}"
+                                      class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    {% csrf_token %}
+                                    <button type="submit" class="bg-red-600 text-white p-1 rounded-full hover:bg-red-700" 
+                                            onclick="return confirm('Hapus gambar ini?')">
+                                        <i class="fas fa-times text-xs"></i>
+                                    </button>
+                                </form>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-sm text-gray-500 col-span-3">Belum ada gambar</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Image Gallery Modal (Slideshow) -->
+    <div x-show="imageModal" x-cloak 
+         @click.away="imageModal = false" 
+         class="fixed inset-0 bg-black/90 flex items-center justify-center z-50"
+         @keydown.escape.window="imageModal = false">
+        <div class="relative max-w-5xl w-full mx-4" @click.stop>
+            <!-- Close Button -->
+            <button @click="imageModal = false" class="absolute top-4 right-4 z-20 bg-white/20 hover:bg-white/30 text-white p-2 rounded-full transition-colors">
+                <i class="fas fa-times"></i>
+            </button>
+            
+            <!-- Main Image -->
+            <div class="relative">
+                <img :src="currentEkstraImages[currentImageIndex]?.url" 
+                     :alt="currentEkstraImages[currentImageIndex]?.alt"
+                     class="w-full h-auto max-h-[80vh] object-contain rounded-lg">
+                
+                <!-- Navigation Arrows -->
+                <button x-show="currentImageIndex > 0" 
+                        @click="currentImageIndex--"
+                        class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full transition-colors">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button x-show="currentImageIndex < currentEkstraImages.length - 1" 
+                        @click="currentImageIndex++"
+                        class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full transition-colors">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            
+            <!-- Thumbnails -->
+            <div class="flex justify-center gap-2 mt-4 overflow-x-auto pb-2">
+                <template x-for="(img, index) in currentEkstraImages" :key="index">
+                    <button @click="currentImageIndex = index"
+                            :class="currentImageIndex === index ? 'ring-2 ring-white' : 'opacity-50'"
+                            class="flex-shrink-0">
+                        <img :src="img.url" :alt="img.alt" class="w-16 h-16 object-cover rounded-lg">
+                    </button>
+                </template>
+            </div>
+            
+            <!-- Image Counter -->
+            <div class="text-center mt-2 text-white">
+                <span x-text="(currentImageIndex + 1) + ' / ' + currentEkstraImages.length"></span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Delete Modal -->
+    <div x-show="deleteModal" x-cloak class="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full mx-4">
+            <h3 class="text-lg font-semibold mb-4">Hapus Ekstrakurikuler</h3>
+            <p class="text-gray-700 mb-6">Hapus "<span x-text="deleteName"></span>"?</p>
+            <div class="flex justify-end space-x-3">
+                <button @click="deleteModal = false" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors">Batal</button>
+                <form method="post" action="{% url 'core:ekstrakurikuler_delete' 0 %}" x-bind:action="'/admin-panel/core/ekstrakurikuler/' + deleteId + '/delete/'">
+                    {% csrf_token %}
+                    <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">Hapus</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

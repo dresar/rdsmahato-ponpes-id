@@ -1,0 +1,397 @@
+{% extends 'admin-panel/base.html' %}
+
+{% block title %}Pengaturan Website - Admin Panel{% endblock %}
+
+{% block page_title %}Pengaturan Website{% endblock %}
+
+{% block breadcrumb_items %}
+<li><span class="text-gray-500">/</span></li>
+<li><span class="text-gray-900">Pengaturan</span></li>
+<li><span class="text-gray-500">/</span></li>
+<li><span class="text-gray-900">Umum</span></li>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow p-6" x-data="{ editMode: false }">
+    <div class="mb-6 flex items-center justify-between">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-900 mb-2">Pengaturan Website</h2>
+            <p class="text-sm text-gray-600">Kelola informasi umum website dan pondok pesantren</p>
+        </div>
+        <div>
+            <button 
+                type="button" 
+                @click="editMode = !editMode"
+                x-show="!editMode"
+                class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center">
+                <i class="fas fa-edit mr-2"></i>Edit
+            </button>
+            <button 
+                type="button" 
+                @click="editMode = false"
+                x-show="editMode"
+                class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium flex items-center">
+                <i class="fas fa-times mr-2"></i>Batal
+            </button>
+        </div>
+    </div>
+    
+    
+    <form method="post" enctype="multipart/form-data" class="space-y-8" @submit.prevent="if(editMode) $el.submit()">
+        {% csrf_token %}
+        
+        <!-- Informasi Umum -->
+        <div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <i class="fas fa-info-circle mr-2 text-green-600"></i>Informasi Umum
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="md:col-span-2">
+                    <label for="{{ form.nama_pondok.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.nama_pondok.label }} <span class="text-red-500">*</span>
+                    </label>
+                    <div x-show="!editMode" class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <p class="text-gray-900">{{ settings.nama_pondok|default:"-" }}</p>
+                    </div>
+                    <div x-show="editMode">
+                        {{ form.nama_pondok }}
+                        {% if form.nama_pondok.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.nama_pondok.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="md:col-span-2">
+                    <label for="{{ form.arabic_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.arabic_name.label }}
+                    </label>
+                    <div x-show="!editMode" class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <p class="text-gray-900">{{ settings.arabic_name|default:"-" }}</p>
+                    </div>
+                    <div x-show="editMode">
+                        {{ form.arabic_name }}
+                        {% if form.arabic_name.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.arabic_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="md:col-span-2">
+                    <label for="{{ form.alamat.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.alamat.label }} <span class="text-red-500">*</span>
+                    </label>
+                    <div x-show="!editMode" class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <p class="text-gray-900 whitespace-pre-line">{{ settings.alamat|default:"-" }}</p>
+                    </div>
+                    <div x-show="editMode">
+                        {{ form.alamat }}
+                        {% if form.alamat.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.alamat.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="md:col-span-2">
+                    <label for="{{ form.deskripsi.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.deskripsi.label }}
+                    </label>
+                    <div x-show="!editMode" class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <p class="text-gray-900 whitespace-pre-line">{{ settings.deskripsi|default:"-" }}</p>
+                    </div>
+                    <div x-show="editMode">
+                        {{ form.deskripsi }}
+                        {% if form.deskripsi.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.deskripsi.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="{{ form.logo.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.logo.label }}
+                    </label>
+                    {% if settings.logo %}
+                    <div class="mb-2">
+                        <img src="{{ settings.logo.url }}" alt="Logo" class="h-20 w-auto object-contain">
+                    </div>
+                    {% endif %}
+                    <div x-show="editMode">
+                        {{ form.logo }}
+                        {% if form.logo.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.logo.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="{{ form.header_mobile_image.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.header_mobile_image.label }}
+                    </label>
+                    {% if settings.header_mobile_image %}
+                    <div class="mb-2">
+                        <img src="{{ settings.header_mobile_image.url }}" alt="Header Mobile" class="w-full max-w-sm h-auto object-contain border border-gray-200 rounded header-mobile-preview" data-height="{{ settings.header_mobile_height|default:80 }}">
+                        <p class="mt-2 text-xs text-gray-600">Preview (ukuran sebenarnya di mobile: max <span class="header-height-value">{{ settings.header_mobile_height|default:80 }}</span>px tinggi)</p>
+                    </div>
+                    {% endif %}
+                    <div x-show="editMode">
+                        {{ form.header_mobile_image }}
+                        {% if form.header_mobile_image.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.header_mobile_image.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-500">
+                            <strong>Ukuran yang disarankan:</strong><br>
+                            • Lebar: <strong>800-1200px</strong> (untuk kualitas retina)<br>
+                            • Tinggi: <strong>80-100px</strong><br>
+                            • Format: JPG atau PNG<br>
+                            • Aspect ratio: sekitar <strong>10:1</strong> atau <strong>12:1</strong> (sangat landscape)
+                        </p>
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="{{ form.header_mobile_height.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.header_mobile_height.label }}
+                    </label>
+                    <div x-show="!editMode" class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <p class="text-gray-900">{{ settings.header_mobile_height|default:80 }} px</p>
+                    </div>
+                    <div x-show="editMode">
+                        {{ form.header_mobile_height }}
+                        {% if form.header_mobile_height.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.header_mobile_height.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-500">Tinggi maksimal header mobile dalam pixel. Disarankan: 60-120px. Default: 80px</p>
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="{{ form.favicon.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.favicon.label }}
+                    </label>
+                    {% if settings.favicon %}
+                    <div class="mb-2">
+                        <img src="{{ settings.favicon.url }}" alt="Favicon" class="h-16 w-16 object-contain">
+                    </div>
+                    {% endif %}
+                    <div x-show="editMode">
+                        {{ form.favicon }}
+                        {% if form.favicon.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.favicon.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-500">Ukuran disarankan: 32x32 atau 16x16 pixels</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Kontak -->
+        <div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <i class="fas fa-phone mr-2 text-green-600"></i>Kontak
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="{{ form.no_telepon.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.no_telepon.label }}
+                    </label>
+                    <div x-show="!editMode" class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <p class="text-gray-900">{{ settings.no_telepon|default:"-" }}</p>
+                    </div>
+                    <div x-show="editMode">
+                        {{ form.no_telepon }}
+                        {% if form.no_telepon.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.no_telepon.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-500">Format: 081234567890 atau 6281234567890</p>
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.email.label }}
+                    </label>
+                    <div x-show="!editMode" class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <p class="text-gray-900">{{ settings.email|default:"-" }}</p>
+                    </div>
+                    <div x-show="editMode">
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="md:col-span-2">
+                    <label for="{{ form.website.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.website.label }}
+                    </label>
+                    <div x-show="!editMode" class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <p class="text-gray-900">{{ settings.website|default:"-" }}</p>
+                    </div>
+                    <div x-show="editMode">
+                        {{ form.website }}
+                        {% if form.website.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.website.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="md:col-span-2">
+                    <label for="{{ form.google_maps_link.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.google_maps_link.label }}
+                    </label>
+                    <div x-show="!editMode" class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <p class="text-gray-900 break-all">{{ settings.google_maps_link|default:"-" }}</p>
+                    </div>
+                    <div x-show="editMode">
+                        {{ form.google_maps_link }}
+                        {% if form.google_maps_link.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.google_maps_link.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-500">Link Google Maps untuk dibuka di tab baru</p>
+                    </div>
+                </div>
+                
+                <div class="md:col-span-2">
+                    <label for="{{ form.google_maps_embed_code.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.google_maps_embed_code.label }}
+                    </label>
+                    <div x-show="!editMode" class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <div class="text-gray-900 text-sm">{{ settings.google_maps_embed_code|default:"-"|truncatewords:20 }}</div>
+                    </div>
+                    <div x-show="editMode">
+                        {{ form.google_maps_embed_code }}
+                        {% if form.google_maps_embed_code.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.google_maps_embed_code.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-500">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Paste kode iframe dari Google Maps Embed API. Cara mendapatkan: Buka Google Maps → Pilih lokasi → Klik "Bagikan" → Pilih "Sematkan peta" → Salin kode iframe
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="md:col-span-2">
+                    <label for="{{ form.lokasi_pendaftaran.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.lokasi_pendaftaran.label }}
+                    </label>
+                    <div x-show="!editMode" class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <p class="text-gray-900 whitespace-pre-line">{{ settings.lokasi_pendaftaran|default:"-" }}</p>
+                    </div>
+                    <div x-show="editMode">
+                        {{ form.lokasi_pendaftaran }}
+                        {% if form.lokasi_pendaftaran.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.lokasi_pendaftaran.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SEO Settings -->
+        <div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <i class="fas fa-search mr-2 text-green-600"></i>Pengaturan SEO (Search Engine Optimization)
+            </h3>
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <p class="text-sm text-blue-800">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    Pengaturan SEO membantu website Anda muncul di hasil pencarian Google dan mesin pencari lainnya.
+                </p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="md:col-span-2">
+                    <label for="{{ form.meta_title.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.meta_title.label }}
+                    </label>
+                    <div x-show="!editMode" class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <p class="text-gray-900">{{ settings.meta_title|default:"-" }}</p>
+                    </div>
+                    <div x-show="editMode">
+                        {{ form.meta_title }}
+                        {% if form.meta_title.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.meta_title.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-500">Judul yang muncul di hasil pencarian (disarankan maks 60 karakter)</p>
+                    </div>
+                </div>
+                
+                <div class="md:col-span-2">
+                    <label for="{{ form.meta_description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.meta_description.label }}
+                    </label>
+                    <div x-show="!editMode" class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <p class="text-gray-900">{{ settings.meta_description|default:"-" }}</p>
+                    </div>
+                    <div x-show="editMode">
+                        {{ form.meta_description }}
+                        {% if form.meta_description.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.meta_description.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-500">Deskripsi singkat yang muncul di hasil pencarian (disarankan maks 160 karakter)</p>
+                    </div>
+                </div>
+                
+                <div class="md:col-span-2">
+                    <label for="{{ form.meta_keywords.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        {{ form.meta_keywords.label }}
+                    </label>
+                    <div x-show="!editMode" class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <p class="text-gray-900">{{ settings.meta_keywords|default:"-" }}</p>
+                    </div>
+                    <div x-show="editMode">
+                        {{ form.meta_keywords }}
+                        {% if form.meta_keywords.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.meta_keywords.errors.0 }}</p>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-500">Kata kunci relevan, pisahkan dengan koma (contoh: pondok pesantren, pendidikan islam, santri)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Form Errors -->
+        {% if form.non_field_errors %}
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+            <ul class="list-disc list-inside text-sm text-red-800">
+                {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        
+        <!-- Action Buttons -->
+        <div class="flex items-center justify-end pt-6 border-t border-gray-200" x-show="editMode">
+            <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
+                <i class="fas fa-save mr-2"></i>Simpan Pengaturan
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Update preview header mobile height
+    document.addEventListener('DOMContentLoaded', function() {
+        const heightInput = document.getElementById('{{ form.header_mobile_height.id_for_label }}');
+        const previewImg = document.querySelector('.header-mobile-preview');
+        const heightValue = document.querySelector('.header-height-value');
+        
+        if (heightInput && previewImg) {
+            // Update preview saat input berubah
+            heightInput.addEventListener('input', function() {
+                const newHeight = this.value || 80;
+                previewImg.style.maxHeight = newHeight + 'px';
+                if (heightValue) {
+                    heightValue.textContent = newHeight;
+                }
+            });
+            
+            // Set initial height
+            const initialHeight = heightInput.value || previewImg.getAttribute('data-height') || 80;
+            previewImg.style.maxHeight = initialHeight + 'px';
+        }
+    });
+</script>
+{% endblock %}
+

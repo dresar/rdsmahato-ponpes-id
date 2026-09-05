@@ -1,0 +1,46 @@
+# Django Core
+Django>=5.2.8
+django-extensions>=3.2.0
+
+# HTMX Integration
+django-htmx>=1.19.0
+
+# Form Enhancement
+django-widget-tweaks>=1.5.0
+
+# Filtering & Search
+django-filter>=24.2
+
+# Image Processing
+Pillow>=10.0.0
+
+# Database
+PyMySQL>=1.1.0  # MySQL driver untuk Django (lebih mudah diinstall di Windows)
+
+# Development Tools (Optional but recommended)
+ipython>=8.0.0
+python-decouple>=3.8
+
+# Rich Text Editor
+django-summernote>=0.8.20
+
+# Data Export/Import
+openpyxl>=3.1.0
+pandas>=2.0.0
+reportlab>=4.0.0
+# Note: xhtml2pdf dihapus karena tidak digunakan dan memerlukan pycairo (build tools)
+# Jika diperlukan di masa depan, install manual: pip install --no-deps xhtml2pdf>=0.2.11
+
+# Static Files & Performance
+whitenoise>=6.6.0
+django-htmlmin>=0.11.0
+# django-compressor>=4.4  # DISABLED - appconf tidak kompatibel dengan Python 3.10
+# appconf>=0.1.1  # DISABLED - tidak diperlukan tanpa django-compressor
+rcssmin>=1.1.0
+rjsmin>=1.2.0
+
+# Security
+django-axes>=6.1.0  # Brute force protection dan login security
+django-csp>=3.8  # Content Security Policy untuk mencegah XSS attacks
+fontawesomefree>=6.6.0  # Font Awesome Free via pip (tanpa static manual)
+
